@@ -1,8 +1,8 @@
 import * as React from "react";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "primary" | "secondary" | "ghost";
-  size?: "default" | "sm" | "lg" | "icon";
+  _variant?: "default" | "primary" | "secondary" | "ghost";
+  _size?: "default" | "sm" | "lg" | "icon";
   asChild?: boolean;
   loading?: boolean;
   disabled?: boolean;
@@ -12,8 +12,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       className,
-      variant = "default",
-      size = "default",
+      _variant = "default",
+      _size = "default",
       asChild = false,
       loading = false,
       disabled = false,
