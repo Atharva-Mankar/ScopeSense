@@ -1,0 +1,29 @@
+import axios from "axios";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Add request interceptor for auth token (will be used later)
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem("access_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export const api = {
+  get: apiClient.get,
+  post: apiClient.post,
+  put: apiClient.put,
+  delete: apiClient.delete,
+  patch: apiClient.patch,
+};
+
+export default apiClient;
