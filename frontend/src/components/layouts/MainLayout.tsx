@@ -1,6 +1,17 @@
 import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 export const MainLayout = ({ children }: { children: React.ReactNode }) => {
+  const { user, isAuthenticated } = useAuth();
+  const location = useLocation();
+
+  const isActiveRoute = (path: string) => {
+    return location.pathname === path
+      ? "text-indigo-600 bg-indigo-50"
+      : "text-gray-500 hover:text-gray-700 hover:bg-gray-50";
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 shadow-sm">
@@ -8,30 +19,30 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <a href="#" className="text-xl font-semibold text-indigo-600">
+                <Link to="/dashboard" className="text-xl font-semibold text-indigo-600">
                   Scope Sense
-                </a>
+                </Link>
               </div>
               <div className="hidden md:block">
                 <div className="ml-10 flex items-baseline space-x-4">
-                  <a
-                    href="#"
-                    className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  <Link
+                    to="/dashboard"
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${isActiveRoute("/dashboard")}`}
                   >
                     Dashboard
-                  </a>
-                  <a
-                    href="#"
-                    className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  </Link>
+                  <Link
+                    to="/projects"
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${isActiveRoute("/projects")}`}
                   >
                     Projects
-                  </a>
-                  <a
-                    href="#"
-                    className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  </Link>
+                  <Link
+                    to="/contracts"
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${isActiveRoute("/contracts")}`}
                   >
                     Contracts
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -58,29 +69,32 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
                   </svg>
                 </button>
 
-                <div className="ml-3 relative">
-                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                    <button
-                      type="button"
-                      className="bg-white rounded-full p-1 text-sm font-medium text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 flex items-center space-x-1 rtl:space-x-reverse"
-                    >
-                      <span className="sr-only">Open user menu</span>
-                      <svg
-                        className="h-6 w-6"
-                        stroke="currentColor"
-                        fill="none"
-                        viewBox="0 0 24 24"
+                {isAuthenticated && user && (
+                  <div className="ml-3 relative">
+                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                      <button
+                        type="button"
+                        className="bg-white rounded-full p-1 text-sm font-medium text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 flex items-center space-x-1 rtl:space-x-reverse"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M16 8a6 6 0 00-6 6 6 6 0 01-6 6 6 6 0 006 6 6 6 0 016-6 6 6 0 006-6 6 6 0 01-6-6zM8 6a4 4 0 014-4 4 4 4 0 004 4 4 4 4 0 00-4-4z"
-                        />
-                      </svg>
-                    </button>
+                        <span className="sr-only">Open user menu</span>
+                        <svg
+                          className="h-6 w-6"
+                          stroke="currentColor"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M16 8a6 6 0 00-6 6 6 6 0 016-6 6 6 0 016-6zM8 6a4 4 0 014-4 4 4 0 004 4 4 4 0 00-4-4z"
+                          />
+                        </svg>
+                        <span className="text-sm ml-1">{user.first_name}</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
