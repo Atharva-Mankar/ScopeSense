@@ -58,12 +58,13 @@ def get_current_user(
         raise credentials_exception
 
     try:
-        user_uuid = UUID(user_id)
+        # Validate that the user_id is a valid UUID string
+        UUID(user_id)
     except ValueError:
         raise credentials_exception
 
     auth_service = AuthService(db)
-    user = auth_service.get_user_by_id(user_uuid)
+    user = auth_service.get_user_by_id(user_id)
     if user is None:
         raise credentials_exception
 

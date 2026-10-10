@@ -1,3 +1,4 @@
+"""Tests for authentication endpoints."""
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -11,38 +12,7 @@ from app.models.roles import UserRole
 from app.core.security import hash_password
 
 
-# Create in-memory SQLite database for testing
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-def override_get_db():
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
-
-
-app.dependency_overrides[get_db] = override_get_db
-
-client = TestClient(app)
-
-
-@pytest.fixture(autouse=True)
-def setup_database():
-    Base.metadata.create_all(bind=engine)
-    yield
-    Base.metadata.drop_all(bind=engine)
-
-
-def test_register_user_success():
+def test_register_user_success(client):
     """Test successful user registration."""
     response = client.post(
         "/api/v1/auth/register",
@@ -66,7 +36,7 @@ def test_register_user_success():
     assert data["token_type"] == "bearer"
 
 
-def test_register_duplicate_email():
+def test_register_duplicate_email(client):
     """Test registering a user with an existing email."""
     # Register first user
     client.post(
@@ -95,7 +65,7 @@ def test_register_duplicate_email():
     assert "already exists" in response.json()["detail"]
 
 
-def test_register_invalid_email():
+def test_register_invalid_email(client):
     """Test registering with an invalid email."""
     response = client.post(
         "/api/v1/auth/register",
@@ -111,7 +81,7 @@ def test_register_invalid_email():
     assert response.status_code in (422, 201)
 
 
-def test_register_short_password():
+def test_register_short_password(client):
     """Test registering with a password that's too short."""
     response = client.post(
         "/api/v1/auth/register",
@@ -126,7 +96,7 @@ def test_register_short_password():
     assert response.status_code == 422
 
 
-def test_login_success():
+def test_login_success(client):
     """Test successful login."""
     # First register a user
     client.post(
@@ -154,7 +124,7 @@ def test_login_success():
     assert "access_token" in data
 
 
-def test_login_wrong_password():
+def test_login_wrong_password(client):
     """Test login with incorrect password."""
     # Register a user
     client.post(
@@ -180,7 +150,7 @@ def test_login_wrong_password():
     assert "Incorrect email or password" in response.json()["detail"]
 
 
-def test_login_nonexistent_email():
+def test_login_nonexistent_email(client):
     """Test login with non-existent email."""
     response = client.post(
         "/api/v1/auth/login",
@@ -192,7 +162,7 @@ def test_login_nonexistent_email():
     assert response.status_code == 401
 
 
-def test_get_current_user_success():
+def test_get_current_user_success(client):
     """Test accessing /me with valid token."""
     # Register and login to get token
     register_response = client.post(
@@ -218,13 +188,13 @@ def test_get_current_user_success():
     assert data["first_name"] == "Test"
 
 
-def test_get_current_user_no_token():
+def test_get_current_user_no_token(client):
     """Test accessing /me without token."""
     response = client.get("/api/v1/auth/me")
     assert response.status_code == 401
 
 
-def test_get_current_user_invalid_token():
+def test_get_current_user_invalid_token(client):
     """Test accessing /me with invalid token."""
     response = client.get(
         "/api/v1/auth/me",
@@ -233,7 +203,7 @@ def test_get_current_user_invalid_token():
     assert response.status_code == 401
 
 
-def test_password_is_hashed():
+def test_password_is_hashed(client, db_session):
     """Test that password is stored hashed, not in plaintext."""
     response = client.post(
         "/api/v1/auth/register",
@@ -248,9 +218,7 @@ def test_password_is_hashed():
     assert response.status_code == 201
 
     # Get the user from database
-    db = TestingSessionLocal()
-    user = db.query(User).filter(User.email == "test@example.com").first()
-    db.close()
+    user = db_session.query(User).filter(User.email == "test@example.com").first()
 
     assert user is not None
     assert user.password_hash != "SecurePass123!"
@@ -262,7 +230,7 @@ def test_password_is_hashed():
     assert verify_password("WrongPassword", user.password_hash) == False
 
 
-def test_user_roles():
+def test_user_roles(client):
     """Test that public roles can be registered."""
     # Test that public registration allows only freelancer and client
     roles = ["freelancer", "client"]
@@ -298,7 +266,7 @@ def test_user_roles():
     assert any("Invalid role 'admin' for registration" in str(item) for item in detail)
 
 
-def test_inactive_user_cannot_login():
+def test_inactive_user_cannot_login(client, db_session):
     """Test that inactive users cannot authenticate."""
     # Register a user
     client.post(
@@ -313,11 +281,9 @@ def test_inactive_user_cannot_login():
     )
 
     # Deactivate the user directly in DB (simulating admin action)
-    db = TestingSessionLocal()
-    user = db.query(User).filter(User.email == "inactive@example.com").first()
+    user = db_session.query(User).filter(User.email == "inactive@example.com").first()
     user.is_active = False
-    db.commit()
-    db.close()
+    db_session.commit()
 
     # Try to login - should fail
     response = client.post(
@@ -330,7 +296,7 @@ def test_inactive_user_cannot_login():
     assert response.status_code == 401
 
 
-def test_logout_endpoint():
+def test_logout_endpoint(client):
     """Test the logout endpoint."""
     response = client.post("/api/v1/auth/logout")
     assert response.status_code == 200

@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 from typing import Optional
-from uuid import UUID
 
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -87,7 +86,7 @@ class AuthService:
 
         return user
 
-    def update_last_login(self, user_id: UUID) -> None:
+    def update_last_login(self, user_id: str) -> None:
         """Update the last_login_at timestamp for a user.
 
         Args:
@@ -98,7 +97,7 @@ class AuthService:
             user.last_login_at = datetime.now(timezone.utc)
             self.db.commit()
 
-    def get_user_by_id(self, user_id: UUID) -> Optional[User]:
+    def get_user_by_id(self, user_id: str) -> Optional[User]:
         """Retrieve a user by their ID.
 
         Args:
@@ -123,7 +122,7 @@ class AuthService:
             select(User).where(User.email == normalized_email)
         ).scalar_one_or_none()
 
-    def activate_user(self, user_id: UUID) -> bool:
+    def activate_user(self, user_id: str) -> bool:
         """Activate a user account.
 
         Args:
@@ -139,7 +138,7 @@ class AuthService:
             return True
         return False
 
-    def deactivate_user(self, user_id: UUID) -> bool:
+    def deactivate_user(self, user_id: str) -> bool:
         """Deactivate a user account.
 
         Args:
@@ -155,7 +154,7 @@ class AuthService:
             return True
         return False
 
-    def verify_user(self, user_id: UUID) -> bool:
+    def verify_user(self, user_id: str) -> bool:
         """Mark a user as verified (e.g., after email verification).
 
         Args:
@@ -172,7 +171,7 @@ class AuthService:
         return False
 
     def update_user(
-        self, user_id: UUID, user_update: UserUpdate
+        self, user_id: str, user_update: UserUpdate
     ) -> Optional[User]:
         """Update a user's profile information.
 
