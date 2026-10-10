@@ -271,3 +271,102 @@ def test_update_project(client):
     assert float(data["budget_amount"]) == update_data["budget_amount"]
     assert data["project_type"] == update_data["project_type"]
     assert data["id"] == project_id
+
+
+def test_idor_across_users(client):
+    """Test that User B cannot access User A's projects (IDOR prevention).
+
+    Verifies that owner_id verification in service methods prevents
+    cross-user access. All unauthorized attempts return 404 to avoid
+    project enumeration.
+    """
+    # Register User A
+    register_a_response = client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "alice@example.com",
+            "password": "SecurePass123!",
+            "first_name": "Alice",
+            "last_name": "Tester",
+            "role": "freelancer",
+        },
+    )
+    assert register_a_response.status_code == 201
+    login_a = client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "alice@example.com",
+            "password": "SecurePass123!",
+        },
+    )
+    assert login_a.status_code == 200
+    alice_headers = {"Authorization": f"Bearer {login_a.json()['access_token']}"}
+
+    # Register User B with a different email
+    register_b = client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "bob@example.com",
+            "password": "SecurePass123!",
+            "first_name": "Bob",
+            "last_name": "Tester",
+            "role": "freelancer",
+        },
+    )
+    assert register_b.status_code == 201
+    login_b = client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "bob@example.com",
+            "password": "SecurePass123!",
+        },
+    )
+    assert login_b.status_code == 200
+    bob_headers = {"Authorization": f"Bearer {login_b.json()['access_token']}"}
+
+    # User A creates a project
+    project_data = {
+        "name": "User A's Project",
+        "description": "Project owned by User A",
+        "budget_amount": 5000.00,
+    }
+    create_response = client.post(
+        "/api/v1/projects",
+        json=project_data,
+        headers=alice_headers,
+    )
+    assert create_response.status_code == 201
+    created_project = create_response.json()
+    project_id = created_project["id"]
+
+    # User B attempts to GET User A's project
+    get_response = client.get(
+        f"/api/v1/projects/{project_id}",
+        headers=bob_headers,
+    )
+    assert get_response.status_code == 404, f"User B should not access User A's project; got {get_response.status_code}"
+
+    # User B attempts to PATCH User A's project
+    patch_response = client.patch(
+        f"/api/v1/projects/{project_id}",
+        json={"name": "Unauthorized Update"},
+        headers=bob_headers,
+    )
+    assert patch_response.status_code == 404, f"User B should not update User A's project; got {patch_response.status_code}"
+
+    # User B attempts to archive User A's project
+    archive_response = client.delete(
+        f"/api/v1/projects/{project_id}",
+        headers=bob_headers,
+    )
+    assert archive_response.status_code == 404, f"User B should not archive User A's project; got {archive_response.status_code}"
+
+    # Verify project remains unchanged by User B
+    verify_response = client.get(
+        f"/api/v1/projects/{project_id}",
+        headers=alice_headers,
+    )
+    assert verify_response.status_code == 200
+    verify_data = verify_response.json()
+    assert verify_data["name"] == project_data["name"]
+    assert verify_data["description"] == project_data["description"]

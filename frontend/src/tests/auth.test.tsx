@@ -8,7 +8,7 @@ import { RegisterPage } from "../pages/Register";
 // Mock the AuthContext - mock useAuth only, keep AuthProvider real
 const mockUseAuth = vi.hoisted(() => vi.fn());
 vi.mock("../context/AuthContext", async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = await importOriginal() as any;
   return {
     ...actual,
     useAuth: mockUseAuth,
@@ -19,7 +19,7 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
   <BrowserRouter>
     <AuthProvider>{children}</AuthProvider>
   </BrowserRouter>
-);
+) as any;
 
 describe("Authentication Pages", () => {
   beforeEach(() => {

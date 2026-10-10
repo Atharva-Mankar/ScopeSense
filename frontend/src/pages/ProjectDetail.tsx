@@ -160,13 +160,13 @@ export const ProjectDetail = () => {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
         <div className="flex space-x-3">
-          <Button onClick={handleEditProject} variant="secondary">
+          <Button onClick={handleEditProject} _variant="secondary">
             Edit Project
           </Button>
           <Button
             onClick={handleArchiveProject}
-            variant="secondary"
-            isLoading={isArchiving}
+            _variant="secondary"
+            loading={isArchiving}
           >
             {isArchiving ? "Archiving..." : "Archive Project"}
           </Button>

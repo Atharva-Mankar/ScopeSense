@@ -128,7 +128,7 @@ export const ProjectSettings = () => {
     <div className="space-y-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
-        <Button onClick={handleBackToDetail} variant="secondary">
+        <Button onClick={handleBackToDetail} _variant="secondary">
           Back to Project
         </Button>
       </div>

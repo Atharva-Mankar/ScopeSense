@@ -59,4 +59,3 @@ select = ["E", "F", "W", "I"]
 ignore = []
 
 [tool.ruff.format]
-line-length = 100

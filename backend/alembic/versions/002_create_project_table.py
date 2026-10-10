@@ -40,6 +40,11 @@ def upgrade() -> None:
             'budget_amount >= 0',
             name='ck_projects_budget_non_negative',
         ),
+        sa.ForeignKeyConstraint(
+            ['owner_id'], ['users.id'],
+            name='fk_projects_owner_id_users',
+            ondelete='RESTRICT'
+        ),
     )
 
     # Create indexes for ownership and status filtering
@@ -63,5 +68,7 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_projects_owner_id'), table_name='projects')
     op.drop_index(op.f('ix_projects_status'), table_name='projects')
     op.drop_index(op.f('ix_projects_name'), table_name='projects')
+    # Drop foreign key constraint
+    op.drop_constraint('fk_projects_owner_id_users', 'projects', type_='foreignkey')
     # Drop table
     op.drop_table('projects')

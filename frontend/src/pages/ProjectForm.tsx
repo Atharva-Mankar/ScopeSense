@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api/client";
 import { Button } from "../components/ui/Button";
-import { cn } from "../lib/utils";
 
 interface ProjectFormData {
   name: string;
@@ -97,7 +96,7 @@ export const ProjectForm = ({ onSuccess }: ProjectFormProps) => {
         name: formData.name,
         description: formData.description,
         project_type: formData.project_type,
-        budget_amount: formData.budget_amount ? parseFloat(formData.budget_amount) : undefined,
+        budget_amount: formData.budget_amount !== null && formData.budget_amount !== undefined ? Number(formData.budget_amount) : undefined,
         currency: formData.currency,
         start_date: formData.start_date ? new Date(formData.start_date) : undefined,
         target_end_date: formData.target_end_date ? new Date(formData.target_end_date) : undefined,
@@ -157,7 +156,7 @@ export const ProjectForm = ({ onSuccess }: ProjectFormProps) => {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold text-gray-900">{formTitle}</h2>
         <Button
-          variant="secondary"
+          _variant="secondary"
           onClick={() => navigate(backLink)}
         >
           Back to Projects
@@ -208,7 +207,7 @@ export const ProjectForm = ({ onSuccess }: ProjectFormProps) => {
             value={formData.description ?? ""}
             onChange={(e) => handleChange("description", e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            rows="4"
+            rows={4}
             placeholder="Enter project description (optional)"
           />
         </div>
@@ -301,7 +300,7 @@ export const ProjectForm = ({ onSuccess }: ProjectFormProps) => {
         <div className="flex items-center justify-end">
           <Button
             type="submit"
-            isLoading={isSubmitting}
+            loading={isSubmitting}
           >
             {submitText}
           </Button>

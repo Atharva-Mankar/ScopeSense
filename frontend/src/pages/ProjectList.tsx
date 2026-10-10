@@ -283,16 +283,16 @@ export const ProjectList = ({ onProjectSelect }: ProjectListProps) => {
                 </div>
                 <div className="flex space-x-2">
                   <Button
-                    variant="secondary"
-                    size="sm"
+                    _variant="secondary"
+                    _size="sm"
                     onClick={() => setPage(page - 1)}
                     disabled={page === 1}
                   >
                     Previous
                   </Button>
                   <Button
-                    variant="secondary"
-                    size="sm"
+                    _variant="secondary"
+                    _size="sm"
                     onClick={() => setPage(page + 1)}
                     disabled={page >= Math.ceil(total / size)}
                   >
